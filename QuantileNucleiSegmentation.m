@@ -202,7 +202,7 @@ segtemp=ReplacePart[segtemp,inlyingpts-> cellID]]
 
 {masksM,boxesM,imgdata,iW,iD,iH} = componentMeasures[file,segM];
 numcells=Length@masksM;
-Fold[nucleiRefinement[#1,#2]&,segM,Range@numcells]
+Fold[nucleiRefinement,segM,Range@numcells]
 ];
 
 
