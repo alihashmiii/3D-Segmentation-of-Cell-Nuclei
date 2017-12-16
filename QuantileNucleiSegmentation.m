@@ -169,8 +169,7 @@ qRegion
 Options[QuantileNuclei]:={"quantile"->0.90,"directions"->20};
 QuantileNuclei[segM_,file_,OptionsPattern[]]:= Module[{masksM,boxesM,iW,iH,iD,numcells,imgdata},
 
-nucleiRefinement[seg_,id_]:=With[{cellID = id,directionOpt = OptionValue["directions"],
-quantileOpt = OptionValue["quantile"]},
+nucleiRefinement[seg_,id_]:=With[{cellID = id,directionOpt = OptionValue["directions"],quantileOpt = OptionValue["quantile"]},
 Block[{b,singlecellData,singlecellImage,singlecellImageBin,pts,qRegion,qSurface,outlierpts,inlyingpts,cellpos,
 segtemp,limits,unitcell},
 Print["processing: ", cellID];
