@@ -210,17 +210,14 @@ Fold[nucleiRefinement[#1,#2]&,segM,Range@numcells]
 (*for visualization only*)
 
 
-visualizeNuclei[file_,seg_,imgdata_,iH_,iD_,iW_]:=Module[{array,cellpos,pixelvals,cellnum},
+visualizeNuclei[file_,seg_]:=Module[{array,cellpos,pixelvals,cellnum,imgdata,iH,iD,iW},
+{imgdata,iW,iD,iH} = componentMeasures[file,seg][[3;;]];
 cellnum = Length@ComponentMeasurements[seg,"Label"];
-array=ConstantArray[0,{iH,iD,iW}]; 
-(* initially empty to add nuclei *)
-Do[
-Print["processing: ", i];
+array=ConstantArray[0,{iH,iD,iW}]; (* initially empty to add nuclei *)
+Do[Print["processing: ", i];
 cellpos=Position[seg,i];
 pixelvals = Extract[imgdata,cellpos];
-array=ReplacePart[array,Thread[cellpos->pixelvals]]
-,{i,Range@cellnum}
-];
+array=ReplacePart[array,Thread[cellpos->pixelvals]],{i,Range@cellnum}];
 Save[DirectoryName@file<>"nucleivisualization.res",array];
 array
 ];
@@ -230,9 +227,8 @@ array
 (*Mains*)
 
 
-Options[segmentStack]:= {"printseg"-> True,"printStats"->True,"mergeorder"-> 3,
-"visualizeNuclei"-> True};
-segmentStack[file_,OptionsPattern[]]:= Module[{seg,segM,imgdata,masksM,boxesM,iW,iH,iD,segNew},
+Options[segmentStack]:= {"printseg"-> True,"printStats"->True,"mergeorder"-> 3,"visualizeNuclei"-> True};
+segmentStack[file_,OptionsPattern[]]:= Module[{seg,segM,segNew},
 seg=initialSegmentation[file];
 segM=Nest[mergeNeighbours,seg,OptionValue@"mergeorder"];
 
@@ -248,7 +244,7 @@ If[OptionValue["printseg"]==True,Print@*Colorize@segNew];
 If[OptionValue["printStats"]==True,primaryStats[segNew]];
 
 If[OptionValue["visualizeNuclei"]==True,
-Print@*Image3D@visualizeNuclei[file,segNew,imgdata,iH,iD,iW]
+Print@*Image3D@visualizeNuclei[file,segNew]
 ];
 segNew
 ];
