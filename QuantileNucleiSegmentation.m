@@ -8,9 +8,10 @@ BeginPackage["QuantileNucleiSegmentation`"];
 
 
 initialSegmentation::usage = "initialSegmentation[filename] takes in a path to an image stack and performs a crude segmentation";
-mergeNeighbours::usage = "mergeNeighbours[segmentation] takes in the segmented imagestack and merge smaller blobs (false nuclei) with their neighbours";
-QuantileNuclei::usage = "QuantileNuclei[segmentation,ImageData,filename] takes in an image stack, its filename and the segmented stack to bound nuclei
-using quantiles"
+mergeNeighbours::usage = "mergeNeighbours[segmentation] takes in the segmented imagestack and merge smaller blobs (false nuclei) with
+their neighbours";
+QuantileNuclei::usage = "QuantileNuclei[segmentation,ImageData,filename] takes in an image stack, its filename and the segmented stack
+to bound nuclei using quantiles"
 primaryStats::usage = "primaryStats[segmentation] takes in a segmented stack and outputs the basic stats";
 segmentStack::usage = "segmentStack[filename] takes in a filename and starts the segmentation procedure";
 
@@ -22,9 +23,12 @@ Begin["`Private`"];
 (*Initial Segmentation*)
 
 
-Options[initialSegmentation]:={"fillholes"->20,"smallcomponents"-> 100,"maxdetectthresh"-> 0.01,"gfilterthresh"-> 2,"printStatus"-> False};
-initialSegmentation[filename_?StringQ,OptionsPattern[]]:=Module[{stack,img3D,imgData,imgDim,roi,img3DBin,imgBinData,imgDataDim,height, fillholes,
-distance,markers, seg, areas, background,centroids,fillh = OptionValue["fillholes"],smallcomp=OptionValue["smallcomponents"]},
+Options[initialSegmentation]:={"fillholes"->20,"smallcomponents"-> 100,"maxdetectthresh"-> 0.01,"gfilterthresh"-> 2,
+"printStatus"-> False};
+initialSegmentation[filename_?StringQ,OptionsPattern[]]:=Module[{stack,img3D,imgData,imgDim,roi,img3DBin,imgBinData,
+imgDataDim,height, fillholes,distance,markers, seg, areas, background,centroids,fillh = OptionValue["fillholes"],
+smallcomp=OptionValue["smallcomponents"]},
+
 stack = Import@filename;
 img3D = Image3D[stack];
 If[OptionValue["printStatus"],Print@img3D];
@@ -50,7 +54,8 @@ img3DBin = Image3D[imgBinData]//DeleteSmallComponents[#,smallcomp]&;
 (* after filling holes we need to find seeds and segment the image using watershed *)
 distance = ImageAdjust@DistanceTransform[img3DBin,Padding-> 0] ;(* distance transform of the image *)
 markers = MaxDetect[distance,OptionValue["maxdetectthresh"]]; (* markers for segmentation *)
-seg = WatershedComponents[GradientFilter[img3D,OptionValue["gfilterthresh"]],markers,Method->"Rainfall"]; (* watershed on non-binarized 3D image *)
+seg = WatershedComponents[GradientFilter[img3D,OptionValue["gfilterthresh"]],markers,Method->"Rainfall"];
+(* watershed on non-binarized 3D image *)
 (* removing background *)
 areas = ComponentMeasurements[seg,"Area"]; 
 background = MaximalBy[areas,Last][[1,1]];  
@@ -66,9 +71,9 @@ seg
 
 
 Options[mergeNeighbours]:={"offset"-> 10000,"maxdistance"-> 7.0,"areaval"-> 15000};
-mergeNeighbours[seg_?ArrayQ,OptionsPattern[]]:=Module[{areasM, ncM,centroidsM,areaval=OptionValue@"areaval",neighboursM,assoc,mergecandidates,
-closecentroids,nearest,nearestpairList,nearestneighboursList,mergeNeighboursHelper,maxdistance=OptionValue@"maxdistance",offset = OptionValue["offset"],
-position,segT=seg},
+mergeNeighbours[seg_?ArrayQ,OptionsPattern[]]:=Module[{areasM, ncM,centroidsM,areaval=OptionValue@"areaval",
+neighboursM,assoc,mergecandidates,closecentroids,nearest,nearestpairList,nearestneighboursList,mergeNeighboursHelper,
+maxdistance=OptionValue@"maxdistance",offset = OptionValue["offset"],position,segT=seg},
 
 {areasM,ncM,centroidsM,neighboursM} =Map[ComponentMeasurements[seg,#]&,{"Area","NeighborCount","Centroid","Neighbors"}];
 
@@ -79,7 +84,8 @@ Join[lis,{Union@Flatten@Extract[nearestpairList,Partition[indices,1]]}],
 Join[lis,{pat}]]
 ];
 assoc=Merge[{Association@areasM,Association@ncM},List@@#&]; 
-mergecandidates = Keys@Select[assoc,(#[[1]]<areaval&&#[[2]]>0&)];(* cells with at least one neighbour and a size smaller than some value *)
+mergecandidates = Keys@Select[assoc,(#[[1]]<areaval&&#[[2]]>0&)];(* cells with at least one neighbour and a size smaller than some
+value *)
 (* the part below finds the nearestneighbours of the individual cells in mergecandidates and sows the closest neighbour with the cell.
  any duplicate entries such as {cell1,cell2} and {cell2,cell1} are deleted. *)
 nearestpairList=
@@ -163,8 +169,10 @@ qRegion
 Options[QuantileNuclei]:={"quantile"->0.90,"directions"->20};
 QuantileNuclei[segM_,file_,OptionsPattern[]]:= Module[{masksM,boxesM,iW,iH,iD,numcells,imgdata},
 
-nucleiRefinement[seg_,id_]:=With[{cellID = id,directionOpt = OptionValue["directions"],quantileOpt = OptionValue["quantile"]},
-Block[{b,singlecellData,singlecellImage,singlecellImageBin,pts,qRegion,qSurface,outlierpts,inlyingpts,cellpos,segtemp,limits,unitcell},
+nucleiRefinement[seg_,id_]:=With[{cellID = id,directionOpt = OptionValue["directions"],
+quantileOpt = OptionValue["quantile"]},
+Block[{b,singlecellData,singlecellImage,singlecellImageBin,pts,qRegion,qSurface,outlierpts,inlyingpts,cellpos,
+segtemp,limits,unitcell},
 Print["processing: ", cellID];
 singlecellData=imgdata*masksM[[cellID,2]];
 b = boxesM[[cellID,2]];
@@ -180,7 +188,8 @@ qSurface = BoundaryDiscretizeRegion@qRegion;
 outlierpts=Select[pts,#\[NotElement]qRegion&];
 singlecellImageBin=ReplaceImageValue[singlecellImageBin,outlierpts-> 0];
 
-(* now we need to replace the nucleus in the segmentation structure: zero whatever is initially present and then replace with inlyingpts *)
+(* now we need to replace the nucleus in the segmentation structure: zero whatever is initially present and then
+replace with inlyingpts *)
 cellpos = Position[seg,cellID];
 segtemp=ReplacePart[seg,cellpos-> 0];
 
