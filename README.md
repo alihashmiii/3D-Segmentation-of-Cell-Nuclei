@@ -1,5 +1,5 @@
 # 3D-Segmentation-of-Cell-Nuclei-in-Clusters-
-Segment Cell Nuclei using 3D-Watershed and Quantile Envelopes 
+***Segment Cell Nuclei using 3D-Watershed and Quantile Envelopes***
 
 Authors: Jan Liphardt (Stanford) and Ali Hashmi with help from Anton-Antonov for Quantile-Envelopes
 
