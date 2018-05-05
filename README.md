@@ -1,5 +1,7 @@
 # 3D-Segmentation-of-Cell-Nuclei-in-Aggregates
 
+![status](https://img.shields.io/badge/status-passed-blue.svg)
+
 `Authors: @Jan Liphardt (Stanford) and @Ali Hashmi with help from Anton-Antonov for Quantile-Envelopes`
 
 `Date: 2015`
